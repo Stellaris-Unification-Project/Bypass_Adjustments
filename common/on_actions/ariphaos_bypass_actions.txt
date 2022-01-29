@@ -1,0 +1,31 @@
+on_entering_gateway = {
+	events = {
+		ariphaos_bypass.1
+	}
+}
+
+on_entering_lgate = {
+	events = {
+		ariphaos_bypass.2
+	}
+}
+
+# Detect system control change.
+on_ship_disabled = {
+	events = {
+		ariphaos_bypass.10
+	}
+}
+
+# Simple flag-setting event for compatability detection, as needed.
+on_game_start = {
+	events = {
+		ariphaos_bypass.100
+	}
+}
+
+on_bi_yearly_pulse = {
+	events = {
+		ariphaos_bypass.100
+	}
+}

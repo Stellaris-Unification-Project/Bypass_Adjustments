@@ -1,0 +1,331 @@
+
+namespace = ariphaos_bypass
+
+# Travel through normal gateway
+fleet_event = {
+	id = ariphaos_bypass.1
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				this.owner = {
+					NOR = {
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+						has_technology = tech_ariphaos_gateway_ignore_cooldown
+					}
+				}
+			}
+			hidden_effect = {
+					add_modifier = {
+					modifier = ariphaos_bypass_cooldown
+					days = 20
+				}
+			}
+		}
+	}
+}
+
+# Travel through L-Gate
+fleet_event = {
+	id = ariphaos_bypass.2
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				this.owner = {
+					NOR = {
+						is_country_type = gray_goo
+						is_country_type = gate_builders
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+						has_technology = tech_ariphaos_gateway_ignore_cooldown
+					}
+				}
+			}
+			hidden_effect = {
+					add_modifier = {
+					modifier = ariphaos_bypass_cooldown
+					days = 20
+				}
+			}
+		}
+	}
+}
+
+# For some reason cross-system travel gets blocked when called from immediate in this context.
+# Moving set_location to immediate doesn't work, if the location is outside the fleet's new system.
+fleet_event = {
+	id = ariphaos_bypass.3
+	picture = GFX_evt_drifting_gateway
+	is_triggered_only = yes
+	location = this
+	
+	title = "ariphaos_bypass.3.name"
+	desc = "ariphaos_bypass.3.desc"
+	
+	immediate = {
+		FROMFROM.FROM = {
+			random_system_megastructure = {
+				limit = {
+					OR = {
+						is_megastructure_type = gateway_restored
+						is_megastructure_type = gateway_final
+					}
+				}
+				save_event_target_as = origin_gateway
+			}
+		}
+	}
+	
+	option = {
+		name = OK
+		set_location = {
+			target = event_target:origin_gateway
+			distance = 10
+			angle = random
+		}
+	}
+}
+
+# Detect if controller has switched sides during a battle.
+event = {
+	id = ariphaos_bypass.10
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		is_ship_class = shipclass_starbase
+		solar_system = {
+			any_system_megastructure = {
+				OR = {
+					is_megastructure_type = gateway_restored
+					is_megastructure_type = gateway_final
+					is_megastructure_type = ariphaos_gateway_restored
+				}
+			}
+		}
+		#solar_system.starbase.owner = { NOT = { is_same_value = solar_system.starbase.controller } }
+	}
+	
+	immediate = {
+		solar_system = {
+			random_system_megastructure = {
+				limit = {
+					OR = {
+						is_megastructure_type = gateway_restored
+						is_megastructure_type = gateway_final
+						is_megastructure_type = ariphaos_gateway_restored
+					}
+				}
+				save_event_target_as = disputed_gateway
+			}
+		}
+	
+		solar_system.starbase.controller = { country_event = { id = ariphaos_bypass.11 } }
+	}
+}
+
+country_event = {
+	id = ariphaos_bypass.11
+	picture = GFX_evt_drifting_gateway
+	is_triggered_only = yes
+	location = event_target:disputed_gateway
+	
+	title = "ariphaos_bypass.11.name"
+	desc = "ariphaos_bypass.11.desc"
+	
+	trigger = {
+		OR = {
+			has_technology = tech_ariphaos_gateway_disruption
+			is_country_type = fallen_empire
+			is_country_type = awakened_fallen_empire
+		}
+		NOT = { is_same_value = event_target:disputed_gateway.owner }
+	}
+	
+	# TODO: The AI might have a preference depending on ethics and whether the system borders one of their own.
+	option = {
+		name = "ariphaos_bypass.11.optA"
+		ai_chance = {
+			factor = 90
+			modifier = {
+				factor = 0.01
+				has_claim = event_target:disputed_gateway.solar_system
+			}
+		}
+		
+		allow = {
+			resource_stockpile_compare = { resource = energy value >= 3000 }
+		}
+		
+		add_resource = { energy = -3000 }
+		
+		country_event = {
+			id = ariphaos_bypass.13
+			days = 90
+		}
+		
+		hidden_effect = {
+			event_target:disputed_gateway.owner = { country_event = { id = ariphaos_bypass.12 } }
+		}
+	}
+	
+	option = {
+		name = "ariphaos_bypass.11.optB"
+		ai_chance = {
+			factor = 10
+		}
+	}
+	
+}
+
+country_event = {
+	id = ariphaos_bypass.12
+	picture = GFX_evt_drifting_gateway
+	is_triggered_only = yes
+	location = event_target:disputed_gateway
+	
+	title = "ariphaos_bypass.12.name"
+	desc = "ariphaos_bypass.12.desc"
+	
+	option = {
+		name = OK
+	}
+}
+
+country_event = {
+	id = ariphaos_bypass.13
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				is_same_value = event_target:disputed_gateway.solar_system.starbase.controller
+			}
+			
+			event_target:disputed_gateway = {
+				if = {
+					limit = {
+						is_megastructure_type = gateway_ruined
+					}
+					upgrade_megastructure_to = ariphaos_gateway_ruined_temp
+				}
+				else = {
+					upgrade_megastructure_to = ariphaos_gateway_ruined_temp_2
+				}
+				set_megastructure_flag = ariphaos_gateway_disrupted
+			}
+			
+			# Maintained control of the system and disrupted the gateway.
+			country_event = { id = ariphaos_bypass.14 }
+			# Failed to regain the system, the gateway has been ruined and will need restoration.
+			event_target:disputed_gateway.owner = { country_event = { id = ariphaos_bypass.15 } }
+			
+			country_event = {
+				id = ariphaos_bypass.18
+				days = 1
+			}
+			
+		}
+		else = {
+			event_target:disputed_gateway = {
+				set_megastructure_flag = ariphaos_gateway_disruption_attempted
+			}
+			# Failed to maintain control of the system, notify them of their failure.
+			country_event = { id = ariphaos_bypass.16 }
+			# Successfully regained the system before the gateway could be disrupted.
+			event_target:disputed_gateway.owner = { country_event = { id = ariphaos_bypass.17 } }
+		}
+	}
+}
+
+country_event = {
+	id = ariphaos_bypass.14
+	picture = GFX_evt_drifting_gateway
+	show_sound = event_ship_explosion
+	is_triggered_only = yes
+	location = event_target:disputed_gateway
+	
+	title = "ariphaos_bypass.14.name"
+	desc = "ariphaos_bypass.14.desc"
+	
+	option = {
+		name = SPLENDID
+	}
+}
+
+country_event = {
+	id = ariphaos_bypass.15
+	picture = GFX_evt_drifting_gateway
+	show_sound = event_ship_explosion
+	is_triggered_only = yes
+	location = event_target:disputed_gateway
+	
+	title = "ariphaos_bypass.15.name"
+	desc = "ariphaos_bypass.15.desc"
+	
+	option = {
+		name = CURSES
+		hidden_effect = {
+			
+		}
+	}
+}
+
+country_event = {
+	id = ariphaos_bypass.16
+	picture = GFX_evt_drifting_gateway
+	show_sound = event_metal_fatigue
+	is_triggered_only = yes
+	location = event_target:disputed_gateway
+	
+	title = "ariphaos_bypass.16.name"
+	desc = "ariphaos_bypass.16.desc"
+	
+	option = {
+		name = CURSES
+	}
+}
+
+country_event = {
+	id = ariphaos_bypass.17
+	picture = GFX_evt_drifting_gateway
+	show_sound = event_metal_fatigue
+	is_triggered_only = yes
+	location = event_target:disputed_gateway
+	
+	title = "ariphaos_bypass.17.name"
+	desc = "ariphaos_bypass.17.desc"
+	
+	option = {
+		name = SPLENDID
+	}
+}
+
+country_event = {
+	id = ariphaos_bypass.18
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		event_target:disputed_gateway = {
+			upgrade_megastructure_to = gateway_ruined
+		}
+	}
+}
+
+event = {
+	id = ariphaos_bypass.100
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		set_global_flag = ariphaos_bypass_present
+	}
+}

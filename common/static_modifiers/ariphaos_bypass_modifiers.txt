@@ -1,0 +1,5 @@
+
+
+ariphaos_bypass_cooldown = {
+	ship_speed_mult = -9
+}

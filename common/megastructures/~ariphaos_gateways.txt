@@ -1,0 +1,210 @@
+
+gateway_0 = {
+	entity = "construction_platform_entity"
+	construction_entity = "construction_platform_entity"
+	portrait = "GFX_megastructure_construction_background"
+	place_entity_on_planet_plane = no
+	build_outside_gravity_well = yes 						# indicates this will use "free" placement between the system's inner and outer ring
+															# if this option is active, the placement_rules will be completely ignored
+	show_galactic_map_icon = no
+	build_time = 1080
+	resources = {
+		category = megastructures
+		cost = {
+			alloys = 2500
+			influence = 100
+		}
+	}
+	construction_blocks_others = no
+	construction_blocked_by_others = no
+	
+	bypass_type = gateway
+
+	potential = {
+		has_technology = tech_gateway_construction
+	}
+
+	possible = {
+		exists = starbase
+		custom_tooltip = {
+			fail_text = "requires_inside_border"
+			is_inside_border = from
+		}
+		custom_tooltip = {
+			fail_text = "ariphaos_requires_black_hole"
+			OR = {
+				is_star_class = sc_black_hole
+				any_system_planet = { is_planet_class = pc_black_hole }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_surveyed_system"
+			NOT = {
+				any_system_planet = {
+					is_surveyed = {
+						who = prev.from
+						status = no
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_no_existing_gateway"
+			NOR = {
+				has_megastructure = gateway_0
+				has_megastructure = gateway_ruined
+				has_megastructure = gateway_restored
+				has_megastructure = gateway_final
+				has_megastructure = ariphaos_gateway_ruined_temp
+				has_megastructure = ariphaos_gateway_ruined_temp_2
+				has_megastructure = ariphaos_gateway_restored
+				has_megastructure = lgate_base
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_technology_gateway_construction"
+			from = { has_technology = tech_gateway_construction }
+		}
+	}
+
+	placement_rules = {			# those would be ignored since the gateway is being "free-placed" between the inner and outer radius of the system
+	}
+	
+	# root = system
+	# from = country
+	ai_weight = {
+		factor = 15
+		
+		modifier = {
+			factor = 0
+			NOT = { is_star_class = sc_black_hole }
+		}
+
+		modifier = {
+			factor = 0
+			any_neighbor_system = { 
+				OR = {
+					has_megastructure = gateway_0
+					has_megastructure = gateway_ruined
+					has_megastructure = gateway_restored
+					has_megastructure = gateway_final
+					has_megastructure = ariphaos_gateway_ruined_temp
+					has_megastructure = ariphaos_gateway_ruined_temp_2
+					has_megastructure = ariphaos_gateway_restored
+				}
+			}
+		}		
+	}
+	
+	on_build_start = {}
+	on_build_cancel = {}	
+	on_build_complete = {
+		from = { country_event = { id = apoc.14 } }
+	}
+}
+
+# Because just having a disable gateway effect would be too easy.
+ariphaos_gateway_ruined_temp = {
+	entity = "deactivated_gateway_entity"
+	portrait = "GFX_megastructure_construction_background"
+	place_entity_on_planet_plane = no
+	build_outside_gravity_well = yes
+	show_galactic_map_icon = no
+
+	construction_blocks_others = no
+	construction_blocked_by_others = no
+	
+	upgrade_desc = hide
+	build_time = 0
+	
+	upgrade_from = {
+		gateway_restored
+	}
+
+	potential = {
+		always = no
+	}
+}
+
+# Because just having a disable gateway effect would be too easy.
+ariphaos_gateway_ruined_temp_2 = {
+	entity = "deactivated_gateway_entity"
+	portrait = "GFX_megastructure_construction_background"
+	place_entity_on_planet_plane = no
+	build_outside_gravity_well = yes
+	show_galactic_map_icon = no
+
+	construction_blocks_others = no
+	construction_blocked_by_others = no
+	
+	upgrade_desc = hide
+	build_time = 0
+	
+	upgrade_from = {
+		gateway_final
+	}
+
+	potential = {
+		always = no
+	}
+}
+
+# Disabled Gateway
+gateway_ruined = {
+	entity = "deactivated_gateway_entity"
+	portrait = "GFX_megastructure_construction_background"
+	place_entity_on_planet_plane = no
+	build_outside_gravity_well = yes
+	bypass_type = gateway
+	show_galactic_map_icon = no
+
+	construction_blocks_others = no
+	construction_blocked_by_others = no
+	
+	upgrade_desc = hide
+	build_time = 0
+	
+	upgrade_from = {
+		ariphaos_gateway_ruined_temp
+	}
+
+	potential = {
+		always = no
+	}
+}
+
+# Restored Gateway
+ariphaos_gateway_restored = {
+	entity = "reactivated_gateway_entity"
+	construction_entity = "gateway_portal_entity"
+	portrait = "GFX_megastructure_construction_background"
+	place_entity_on_planet_plane = no
+	# build_outside_gravity_well = yes
+	show_galactic_map_icon = no
+	
+	potential = {
+		has_technology = tech_gateway_activation
+	}
+	
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_technology_gateway_activation"
+			from = { has_technology = tech_gateway_activation }
+		}
+	}
+	upgrade_from = {
+		ariphaos_gateway_ruined_temp_2
+	}
+	build_time = 720
+	resources = {
+		category = megastructures
+		cost = {
+			alloys = 2500
+			energy = 6000
+		}
+	}
+	construction_blocks_others = no
+	construction_blocked_by_others = no
+
+	bypass_type = gateway
+}
