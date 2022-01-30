@@ -12,8 +12,7 @@ fleet_event = {
 			limit = {
 				this.owner = {
 					NOR = {
-						is_country_type = fallen_empire
-						is_country_type = awakened_fallen_empire
+						is_fallen_empire = yes
 						has_technology = tech_ariphaos_gateway_ignore_cooldown
 					}
 				}
@@ -41,8 +40,7 @@ fleet_event = {
 					NOR = {
 						is_country_type = gray_goo
 						is_country_type = gate_builders
-						is_country_type = fallen_empire
-						is_country_type = awakened_fallen_empire
+						is_fallen_empire = yes
 						has_technology = tech_ariphaos_gateway_ignore_cooldown
 					}
 				}
@@ -142,10 +140,9 @@ country_event = {
 	trigger = {
 		OR = {
 			has_technology = tech_ariphaos_gateway_disruption
-			is_country_type = fallen_empire
-			is_country_type = awakened_fallen_empire
+			is_fallen_empire = yes
 		}
-		NOT = { is_same_value = event_target:disputed_gateway.owner }
+		NOT = { is_same_empire = event_target:disputed_gateway.owner }
 	}
 	
 	# TODO: The AI might have a preference depending on ethics and whether the system borders one of their own.
